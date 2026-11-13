@@ -7,9 +7,8 @@ name: pages
 on:
   push:
     branches: [main]
-  release:
-    types: [published, edited]
-  workflow_dispatch:
+  workflow_dispatch: # npm run release starts it after making the release (a release event cannot deploy: Pages only accepts main)
+
 permissions:
   contents: read
   pages: write
