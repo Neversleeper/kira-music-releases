@@ -1,0 +1,44 @@
+# Publishes the small static pages with GitHub Pages (nothing is built, the files are only copied):
+#   /s/          the share page
+#   /            the home of the site (a card whose button downloads the newest installer; __VERSION__ comes from the latest release)
+#   /404.html    opens the share page for the pretty links (/s/sc/<artist>/<song>, /s/yt/<id>)
+#   /confirmed/  where the link of the sign-up confirmation email lands
+name: pages
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the folder to publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p public/s public/confirmed
+          cp s/index.html s/s.js public/s/
+          cp s/404.html public/404.html
+          cp confirmed/index.html public/confirmed/
+          V=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName | sed 's/^v//')
+          test -n "$V"
+          sed "s/__VERSION__/$V/g" index.html > public/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v4
