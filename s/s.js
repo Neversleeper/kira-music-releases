@@ -56,11 +56,12 @@
     }).catch(function () { $('bad').hidden = false })
     return
   }
-  // pretty links: /s/sc/<artist>/<song> and /s/yt/<video id> (a 404.html at the root of the site opens this same page for them); ?l=<song link> keeps working
+  // pretty links: [/<project>]/s/sc/<artist>/<song> and [/<project>]/s/yt/<video id> (a 404.html at the root of the site opens this same page for them; on GitHub Pages
+  // the site lives under /kira-music-releases/, so the path may start with it); ?l=<song link> keeps working
   function fromPath(p) {
-    var m = /^\/s\/sc\/([A-Za-z0-9_-]{1,80})\/([A-Za-z0-9_-]{1,120})\/?$/.exec(p)
+    var m = /^(?:\/[A-Za-z0-9_-]{1,60})?\/s\/sc\/([A-Za-z0-9_-]{1,80})\/([A-Za-z0-9_-]{1,120})\/?$/.exec(p)
     if (m) return 'https://soundcloud.com/' + m[1] + '/' + m[2]
-    m = /^\/s\/yt\/([A-Za-z0-9_-]{11})\/?$/.exec(p)
+    m = /^(?:\/[A-Za-z0-9_-]{1,60})?\/s\/yt\/([A-Za-z0-9_-]{11})\/?$/.exec(p)
     return m ? 'https://www.youtube.com/watch?v=' + m[1] : ''
   }
   var song = params.get('l') || fromPath(location.pathname)
