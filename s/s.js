@@ -1,14 +1,15 @@
 // The share page of Kira Music: it reads ?l=<song link>, checks that it is a song of YouTube or SoundCloud (the same rule as the app) and offers two buttons:
 // one that opens the song in Kira Music (kira://play?l=...) and one that opens it on its own site. Nothing is sent anywhere and nothing is stored.
+// A radio station comes as …/s/rd/<station id>?n=<its name> and opens kira://radio?u=<station id> (Kira looks it up; this page asks nobody).
 (function () {
   var YT = /^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/
   var SC = /^https:\/\/soundcloud\.com\/[A-Za-z0-9_-]{1,80}\/[A-Za-z0-9_-]{1,120}$/
   var TEXT = {
-    es: { one: 'canción', many: 'canciones', title: 'Alguien te compartió una canción', sub: 'Ábrela en Kira Music para escucharla.', open: 'Abrir en Kira Music', site: 'Escucharla en su sitio', get: '¿Aún no tienes Kira Music?', getLink: 'Consíguela', bad: 'Este enlace no funciona', badSub: 'No es un enlace a una canción de YouTube o SoundCloud.' },
-    pt: { one: 'música', many: 'músicas', title: 'Alguém compartilhou uma música com você', sub: 'Abra no Kira Music para ouvir.', open: 'Abrir no Kira Music', site: 'Ouvir no site original', get: 'Ainda não tem o Kira Music?', getLink: 'Baixar', bad: 'Este link não funciona', badSub: 'Não é um link para uma música do YouTube ou SoundCloud.' },
-    fr: { one: 'chanson', many: 'chansons', title: 'Quelqu’un a partagé une chanson avec vous', sub: 'Ouvrez-la dans Kira Music pour l’écouter.', open: 'Ouvrir dans Kira Music', site: 'Écouter sur son site', get: 'Vous n’avez pas encore Kira Music ?', getLink: 'Obtenir', bad: 'Ce lien ne fonctionne pas', badSub: 'Ce n’est pas un lien vers une chanson de YouTube ou SoundCloud.' },
-    tr: { one: 'şarkı', many: 'şarkı', title: 'Biri seninle bir şarkı paylaştı', sub: 'Dinlemek için Kira Music’te aç.', open: 'Kira Music’te aç', site: 'Kendi sitesinde dinle', get: 'Henüz Kira Music’in yok mu?', getLink: 'İndir', bad: 'Bu bağlantı çalışmıyor', badSub: 'YouTube veya SoundCloud’daki bir şarkının bağlantısı değil.' },
-    pl: { one: 'piosenka', many: 'piosenek', title: 'Ktoś udostępnił Ci piosenkę', sub: 'Otwórz ją w Kira Music, aby posłuchać.', open: 'Otwórz w Kira Music', site: 'Posłuchaj na oryginalnej stronie', get: 'Nie masz jeszcze Kira Music?', getLink: 'Pobierz', bad: 'Ten link nie działa', badSub: 'To nie jest link do piosenki z YouTube ani SoundCloud.' }
+    es: { radio: 'Alguien te compartió una emisora de radio', radioSub: 'Ábrela en Kira Music para escucharla en vivo.', one: 'canción', many: 'canciones', title: 'Alguien te compartió una canción', sub: 'Ábrela en Kira Music para escucharla.', open: 'Abrir en Kira Music', site: 'Escucharla en su sitio', get: '¿Aún no tienes Kira Music?', getLink: 'Consíguela', bad: 'Este enlace no funciona', badSub: 'No es un enlace a una canción de YouTube o SoundCloud.' },
+    pt: { radio: 'Alguém compartilhou uma rádio com você', radioSub: 'Abra no Kira Music para ouvir ao vivo.', one: 'música', many: 'músicas', title: 'Alguém compartilhou uma música com você', sub: 'Abra no Kira Music para ouvir.', open: 'Abrir no Kira Music', site: 'Ouvir no site original', get: 'Ainda não tem o Kira Music?', getLink: 'Baixar', bad: 'Este link não funciona', badSub: 'Não é um link para uma música do YouTube ou SoundCloud.' },
+    fr: { radio: 'Quelqu’un a partagé une station de radio avec vous', radioSub: 'Ouvrez-la dans Kira Music pour l’écouter en direct.', one: 'chanson', many: 'chansons', title: 'Quelqu’un a partagé une chanson avec vous', sub: 'Ouvrez-la dans Kira Music pour l’écouter.', open: 'Ouvrir dans Kira Music', site: 'Écouter sur son site', get: 'Vous n’avez pas encore Kira Music ?', getLink: 'Obtenir', bad: 'Ce lien ne fonctionne pas', badSub: 'Ce n’est pas un lien vers une chanson de YouTube ou SoundCloud.' },
+    tr: { radio: 'Biri seninle bir radyo istasyonu paylaştı', radioSub: 'Canlı dinlemek için Kira Music’te aç.', one: 'şarkı', many: 'şarkı', title: 'Biri seninle bir şarkı paylaştı', sub: 'Dinlemek için Kira Music’te aç.', open: 'Kira Music’te aç', site: 'Kendi sitesinde dinle', get: 'Henüz Kira Music’in yok mu?', getLink: 'İndir', bad: 'Bu bağlantı çalışmıyor', badSub: 'YouTube veya SoundCloud’daki bir şarkının bağlantısı değil.' },
+    pl: { radio: 'Ktoś udostępnił Ci stację radiową', radioSub: 'Otwórz ją w Kira Music, aby słuchać na żywo.', one: 'piosenka', many: 'piosenek', title: 'Ktoś udostępnił Ci piosenkę', sub: 'Otwórz ją w Kira Music, aby posłuchać.', open: 'Otwórz w Kira Music', site: 'Posłuchaj na oryginalnej stronie', get: 'Nie masz jeszcze Kira Music?', getLink: 'Pobierz', bad: 'Ten link nie działa', badSub: 'To nie jest link do piosenki z YouTube ani SoundCloud.' }
   }
   var lang = (navigator.language || 'en').slice(0, 2)
   var t = TEXT[lang]
@@ -63,6 +64,19 @@
     if (m) return 'https://soundcloud.com/' + m[1] + '/' + m[2]
     m = /^(?:\/[A-Za-z0-9_-]{1,60})?\/s\/yt\/([A-Za-z0-9_-]{11})\/?$/.exec(p)
     return m ? 'https://www.youtube.com/watch?v=' + m[1] : ''
+  }
+  // a radio station: the name travels in the link, the station is looked up by Kira itself
+  var rd = /^(?:\/[A-Za-z0-9_-]{1,60})?\/s\/rd\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/.exec(location.pathname)
+  if (rd) {
+    var station = String(params.get('n') || '').replace(/\s+/g, ' ').trim().slice(0, 80)
+    var radioApp = 'kira://radio?u=' + rd[1]
+    $('t-title').textContent = station || (t ? t.radio : 'Somebody shared a radio station with you')
+    $('t-sub').textContent = station ? (t ? t.radio : 'Somebody shared a radio station with you') + '. ' + (t ? t.radioSub : 'Open it in Kira Music to listen live.') : (t ? t.radioSub : 'Open it in Kira Music to listen live.')
+    $('open').href = radioApp
+    $('site').hidden = true
+    $('ok').hidden = false
+    setTimeout(function () { location.href = radioApp }, 800)
+    return
   }
   var song = params.get('l') || fromPath(location.pathname)
   if (!(YT.test(song) || SC.test(song))) { $('bad').hidden = false; return }
